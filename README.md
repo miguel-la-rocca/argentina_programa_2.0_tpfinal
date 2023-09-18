@@ -1,8 +1,8 @@
 # argentina_programa_2.0_tpfinal
 
-#Trabajo práctico grupal Introducción a Java
+# Trabajo práctico grupal Introducción a Java
 
-##Se tiene un archivo de texto CSV (cada valor se encuentra separado por una coma) llamado aprobaciones.txt con el siguiente formato:
+## Se tiene un archivo de texto CSV (cada valor se encuentra separado por una coma) llamado aprobaciones.txt con el siguiente formato:
 legajo,nombre y apellido,materia aprobada
 Ejemplo:
 123,Juan Perez,Frontend

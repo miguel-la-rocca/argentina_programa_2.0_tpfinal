@@ -1,0 +1,26 @@
+package TPFinal;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+public class CrearArchivoCSV {
+    public static void main(String[] args) {
+        String archivoCSV = "aprobaciones.txt";
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(archivoCSV))) {
+            // Escribir las líneas en el archivo CSV
+            writer.println("legajo,nombre y apellido,materia aprobada");
+            writer.println("1,Juan Perez,Java");
+            writer.println("2,Ana Rodriguez,Phyton");
+            writer.println("3,Carlos González,Phyton");
+            writer.println("4,Laura Sánchez,Frontend");
+            writer.println("5,Diego López,Java");
+
+            System.out.println("Archivo CSV creado exitosamente.");
+        } catch (IOException e) {
+            System.err.println("Error al crear el archivo CSV: " + e.getMessage());
+        }
+    }
+}
+

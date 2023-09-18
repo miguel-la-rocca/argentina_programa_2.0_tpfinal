@@ -1,0 +1,270 @@
+package TPFinal;
+
+import java.io.*;
+import java.util.*;
+
+class Alumno {
+    private String nombre;
+    private List<String> materiasAprobadas;
+
+    public Alumno(String nombre) {
+        this.nombre = nombre;
+        this.materiasAprobadas = new ArrayList<>();
+    }
+
+    public void agregarMateria(String materia) {
+        materiasAprobadas.add(materia);
+    }
+
+    public void eliminarMateria(String materia) {
+        materiasAprobadas.remove(materia);
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public List<String> getMateriasAprobadas() {
+        return materiasAprobadas;
+    }
+
+    public void mostrarInformacion(int legajo) {
+
+        System.out.printf("| %-6d | %-19s | %-19s |%n", legajo, nombre, String.join(", ", materiasAprobadas));
+    }
+}
+
+public class LeerArchivoCSV {
+    public static void main(String[] args) {
+        String archivoCSV = "aprobaciones.txt";
+        Map<Integer, Alumno> datos = cargarDatosDesdeCSV(archivoCSV);
+
+        Scanner scanner = new Scanner(System.in);
+        boolean continuar = true;
+
+        while (continuar) {
+            mostrarMenu();
+            String opcion = scanner.nextLine();
+
+            switch (opcion) {
+                case "1":
+                    buscarPorLegajo(datos);
+                    break;
+                case "2":
+                    agregarMaterias(datos);
+                    break;
+                case "3":
+                    agregarNuevoAlumno(datos);
+                    break;
+                case "4":
+                    mostrarListaAlumnos(datos);
+                    break;
+                case "5":
+                    eliminarAlumno(datos);
+                    break;
+                case "6":
+                    eliminarMateria(datos);
+                    break;
+                case "7":
+                    continuar = false;
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente de nuevo.");
+                    break;
+            }
+        }
+
+        actualizarCSV(archivoCSV, datos);
+        scanner.close();
+    }
+
+    private static Map<Integer, Alumno> cargarDatosDesdeCSV(String archivoCSV) {
+        Map<Integer, Alumno> datos = new HashMap<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(archivoCSV))) {
+            String linea;
+            String[] encabezado = br.readLine().split(",");
+
+            while ((linea = br.readLine()) != null) {
+                String[] partes = linea.split(",");
+                if (partes.length == encabezado.length) {
+                    int legajo = Integer.parseInt(partes[0]);
+                    String nombreApellido = partes[1];
+                    String materiaAprobada = partes[2];
+
+                    // Comprueba si el alumno ya existe en el diccionario
+                    if (datos.containsKey(legajo)) {
+                        Alumno alumno = datos.get(legajo);
+                        alumno.agregarMateria(materiaAprobada);
+                    } else {
+                        Alumno nuevoAlumno = new Alumno(nombreApellido);
+                        nuevoAlumno.agregarMateria(materiaAprobada);
+                        datos.put(legajo, nuevoAlumno);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo CSV: " + e.getMessage());
+        }
+
+        return datos;
+    }
+
+    private static void mostrarMenu() {
+        System.out.println("Menú:");
+        System.out.println("1. Buscar por número de legajo");
+        System.out.println("2. Agregar materias a un alumno");
+        System.out.println("3. Agregar nuevo alumno");
+        System.out.println("4. Mostrar lista de alumnos");
+        System.out.println("5. Eliminar alumno");
+        System.out.println("6. Eliminar materia de un alumno");
+        System.out.println("7. Salir");
+        System.out.print("Seleccione una opción: ");
+    }
+
+    private static void buscarPorLegajo(Map<Integer, Alumno> datos) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingrese número de legajo: ");
+        int legajoBuscado = scanner.nextInt();
+        scanner.nextLine(); // Limpiar el búfer
+
+        if (datos.containsKey(legajoBuscado)) {
+            Alumno alumno = datos.get(legajoBuscado);
+            alumno.mostrarInformacion(legajoBuscado); // Pasa el legajo al método mostrarInformacion
+        } else {
+            System.out.println("Legajo no encontrado.");
+        }
+    }
+
+    private static void agregarMaterias(Map<Integer, Alumno> datos) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingrese número de legajo para agregar materias: ");
+        int legajo = scanner.nextInt();
+        scanner.nextLine(); // Limpiar el búfer
+
+        if (datos.containsKey(legajo)) {
+            Alumno alumno = datos.get(legajo);
+
+            System.out.println("1. Agregar materia");
+            System.out.println("2. Eliminar materia");
+            System.out.print("Seleccione una opción: ");
+            String opcion = scanner.nextLine();
+
+            if (opcion.equals("1")) {
+                System.out.print("Ingrese materia aprobada: ");
+                String materiaNueva = scanner.nextLine();
+                alumno.agregarMateria(materiaNueva);
+                System.out.println("Materia agregada con éxito.");
+            } else if (opcion.equals("2")) {
+                System.out.print("Ingrese materia a eliminar: ");
+                String materiaEliminar = scanner.nextLine();
+                if (alumno.getMateriasAprobadas().contains(materiaEliminar)) {
+                    alumno.eliminarMateria(materiaEliminar);
+                    System.out.println("Materia eliminada con éxito.");
+                } else {
+                    System.out.println("La materia no existe en la lista de materias aprobadas.");
+                }
+            } else {
+                System.out.println("Opción no válida.");
+            }
+        } else {
+            System.out.println("Legajo no encontrado.");
+        }
+    }
+
+    private static void agregarNuevoAlumno(Map<Integer, Alumno> datos) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingrese número de legajo para nuevo alumno: ");
+        int legajo = scanner.nextInt();
+        scanner.nextLine(); // Limpiar el búfer
+
+        if (!datos.containsKey(legajo)) {
+            System.out.print("Ingrese nombre y apellido del nuevo alumno: ");
+            String nombreApellido = scanner.nextLine();
+            Alumno nuevoAlumno = new Alumno(nombreApellido);
+            datos.put(legajo, nuevoAlumno);
+            System.out.println("Nuevo alumno agregado con éxito.");
+
+            // Opción para agregar materia al nuevo alumno
+            System.out.print("¿Desea agregar una materia aprobada para este alumno? (S/N): ");
+            String opcion = scanner.nextLine();
+            if (opcion.equalsIgnoreCase("S")) {
+                System.out.print("Ingrese materia aprobada: ");
+                String materiaNueva = scanner.nextLine();
+                nuevoAlumno.agregarMateria(materiaNueva);
+                System.out.println("Materia agregada con éxito.");
+            }
+        } else {
+            System.out.println("El legajo ya existe.");
+        }
+    }
+
+    private static void eliminarAlumno(Map<Integer, Alumno> datos) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingrese número de legajo a eliminar: ");
+        int legajoEliminar = scanner.nextInt();
+        scanner.nextLine(); // Limpiar el búfer
+
+        if (datos.containsKey(legajoEliminar)) {
+            datos.remove(legajoEliminar);
+            System.out.println("Alumno eliminado con éxito.");
+        } else {
+            System.out.println("Legajo no encontrado.");
+        }
+    }
+
+    private static void eliminarMateria(Map<Integer, Alumno> datos) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingrese número de legajo para eliminar materia: ");
+        int legajo = scanner.nextInt();
+        scanner.nextLine(); // Limpiar el búfer
+
+        if (datos.containsKey(legajo)) {
+            Alumno alumno = datos.get(legajo);
+
+            System.out.print("Ingrese materia a eliminar: ");
+            String materiaEliminar = scanner.nextLine();
+            if (alumno.getMateriasAprobadas().contains(materiaEliminar)) {
+                alumno.eliminarMateria(materiaEliminar);
+                System.out.println("Materia eliminada con éxito.");
+            } else {
+                System.out.println("La materia no existe en la lista de materias aprobadas.");
+            }
+        } else {
+            System.out.println("Legajo no encontrado.");
+        }
+    }
+
+    private static void mostrarListaAlumnos(Map<Integer, Alumno> datos) {
+        System.out.println("+--------+---------------------+---------------------+");
+        System.out.println("| Legajo | Nombre y Apellido   | Materias Aprobadas  |");
+        System.out.println("+--------+---------------------+---------------------+");
+
+        for (Map.Entry<Integer, Alumno> entry : datos.entrySet()) {
+            int legajo = entry.getKey();
+            Alumno alumno = entry.getValue();
+            alumno.mostrarInformacion(legajo); // Pasa el legajo al método mostrarInformacion
+        }
+
+        System.out.println("+--------+---------------------+---------------------+");
+    }
+
+    private static void actualizarCSV(String archivoCSV, Map<Integer, Alumno> datos) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(archivoCSV))) {
+            writer.println("legajo,nombre y apellido,materia aprobada");
+
+            for (Map.Entry<Integer, Alumno> entry : datos.entrySet()) {
+                int legajo = entry.getKey();
+                Alumno alumno = entry.getValue();
+
+                for (String materia : alumno.getMateriasAprobadas()) {
+                    writer.println(legajo + "," + alumno.getNombre() + "," + materia);
+                }
+            }
+
+            System.out.println("Archivo CSV actualizado con los nuevos datos.");
+        } catch (IOException e) {
+            System.err.println("Error al actualizar el archivo CSV: " + e.getMessage());
+        }
+    }
+}
